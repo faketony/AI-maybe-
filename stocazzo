@@ -1,0 +1,82 @@
+import tkinter as tk
+from tkinter import ttk
+from transformers import MarianMTModel, MarianTokenizer
+
+# Definire il modello e il tokenizer per la traduzione italiano -> inglese
+model_en = MarianMTModel.from_pretrained("Helsinki-NLP/opus-mt-it-en")
+tokenizer_en = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-it-en")
+
+# Definire il modello e il tokenizer per la traduzione italiano -> spagnolo
+model_es = MarianMTModel.from_pretrained("Helsinki-NLP/opus-mt-it-es")
+tokenizer_es = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-it-es")
+
+def translate(input_text, target_language='en'):
+    if target_language.lower() == 'en':
+        model = model_en
+        tokenizer = tokenizer_en
+    elif target_language.lower() == 'es':
+        model = model_es
+        tokenizer = tokenizer_es
+    else:
+        raise ValueError("Lingua di destinazione non supportata")
+
+    # Tokenizzazione del testo di input
+    input_ids = tokenizer.encode(input_text, return_tensors="pt")
+
+    # Traduzione
+    output_ids = model.generate(input_ids)
+
+    # Decodifica del risultato
+    output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
+
+    return output_text
+
+def translate_button_clicked():
+    input_text = input_entry.get()
+    
+    # Traduzione in inglese
+    translated_text_en = translate(input_text, target_language='en')
+    english_output_var.set(translated_text_en)
+    
+    # Traduzione in spagnolo
+    translated_text_es = translate(input_text, target_language='es')
+    spanish_output_var.set(translated_text_es)
+
+# Creare una finestra Tkinter
+window = tk.Tk()
+window.title("Traduttore")
+
+# Configurare il tema per una migliore estetica
+style = ttk.Style()
+style.theme_use("clam")
+
+# Creare un widget di input
+input_label = ttk.Label(window, text="Inserisci il testo:")
+input_label.grid(column=0, row=0, padx=10, pady=10, sticky=tk.W)
+
+input_entry = ttk.Entry(window, width=40)
+input_entry.grid(column=1, row=0, padx=10, pady=10)
+
+# Creare un pulsante per avviare la traduzione
+translate_button = ttk.Button(window, text="Traduci", command=translate_button_clicked)
+translate_button.grid(column=1, row=1, padx=10, pady=10)
+
+# Variabili per visualizzare i risultati
+english_output_var = tk.StringVar()
+spanish_output_var = tk.StringVar()
+
+# Etichette per i risultati
+english_output_label = ttk.Label(window, text="Inglese:")
+english_output_label.grid(column=0, row=2, padx=10, pady=10, sticky=tk.W)
+
+english_output = ttk.Label(window, textvariable=english_output_var, wraplength=400, font=("Arial", 10))
+english_output.grid(column=1, row=2, padx=10, pady=10, sticky=tk.W)
+
+spanish_output_label = ttk.Label(window, text="Spagnolo:")
+spanish_output_label.grid(column=0, row=3, padx=10, pady=10, sticky=tk.W)
+
+spanish_output = ttk.Label(window, textvariable=spanish_output_var, wraplength=400, font=("Arial", 10))
+spanish_output.grid(column=1, row=3, padx=10, pady=10, sticky=tk.W)
+
+# Eseguire la finestra Tkinter
+window.mainloop()
